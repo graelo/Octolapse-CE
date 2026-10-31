@@ -1,4 +1,6 @@
-# Octolapse
+# Octolapse CE
+
+> **Community Edition.** This is the community-maintained port of [FormerLurker/Octolapse](https://github.com/FormerLurker/Octolapse) (upstream dormant since 2023), kept compatible with modern Python (3.13/3.14) and OctoPrint 2.0. It installs as a **drop-in replacement** for upstream Octolapse: same plugin identity, your existing profiles and settings carry over unchanged.
 
 <div align="center">
     <a href="https://github.com/FormerLurker/Octolapse/wiki/V0.4---Octolapse-Tab" title="Get more information about this feature from the Octolapse Wiki">

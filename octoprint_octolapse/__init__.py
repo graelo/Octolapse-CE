@@ -3738,14 +3738,14 @@ class OctolapsePlugin(
         )
 
     octolapse_update_info = dict(
-        displayName="Octolapse",
+        displayName="Octolapse CE",
         # version check: github repository
-        # NOTE: this port tracks the community fork (graelo/Octolapse); update
+        # NOTE: this port tracks the community fork (graelo/Octolapse-CE); update
         # checks install from this fork's releases, not the (dormant) upstream.
         type="github_release",
         user="graelo",
-        repo="Octolapse",
-        pip="https://github.com/graelo/Octolapse/archive/{target_version}.zip",
+        repo="Octolapse-CE",
+        pip="https://github.com/graelo/Octolapse-CE/archive/{target_version}.zip",
         stable_branch=dict(branch="master", commitish=["master"], name="Stable"),
         release_compare='custom',
         prerelease_branches=[
@@ -3849,7 +3849,10 @@ class OctolapsePlugin(
             )
         ]
 
-__plugin_name__ = "Octolapse"
+# Plugin identity (key, package, settings) stays 'octolapse' for drop-in
+# compatibility with upstream installs; only the display name distinguishes
+# the community edition.
+__plugin_name__ = "Octolapse CE"
 __plugin_pythoncompat__ = ">=3.9,<4"
 
 def __plugin_load__():
