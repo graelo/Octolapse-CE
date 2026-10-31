@@ -32,11 +32,18 @@ static PyObject* py_get_effective_level_function_name = NULL;
 void octolapse_initialize_loggers()
 {
   // Create all of the objects necessary for logging
-  // Import the octolapse.log module
+  // Import the octoprint_octolapse.log module
+#if PY_VERSION_HEX >= 0x030D0000
+  // PyImport_ImportModuleNoBlock is deprecated since Python 3.13 (and removed in
+  // 3.15); on modern Pythons it is just a wrapper around PyImport_ImportModule
+  // that emits a DeprecationWarning, so call the real function directly.
+  py_logging_module = PyImport_ImportModule("octoprint_octolapse.log");
+#else
   py_logging_module = PyImport_ImportModuleNoBlock("octoprint_octolapse.log");
+#endif
   if (py_logging_module == NULL)
   {
-    PyErr_SetString(PyExc_ImportError, "Could not import module 'octolapse.log'.");
+    PyErr_SetString(PyExc_ImportError, "Could not import module 'octoprint_octolapse.log'.");
     return;
   }
 
