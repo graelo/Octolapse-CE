@@ -52,7 +52,7 @@ import time
 # from six.moves import queue
 import queue as queue
 from tempfile import mkdtemp
-from distutils.version import LooseVersion
+from octoprint.util.version import is_octoprint_compatible
 from io import BytesIO
 import octoprint.plugin
 import octoprint.filemanager
@@ -127,7 +127,7 @@ class OctolapsePlugin(
     PREPROCESSING_CANCEL_TIMEOUT_SECONDS = 5
     PREPROCESSING_NOTIFICATION_PERIOD_SECONDS = 1
 
-    if LooseVersion(octoprint.server.VERSION) >= LooseVersion("1.4"):
+    if is_octoprint_compatible(">=1.4"):
         import octoprint.access.permissions as permissions
         admin_permission = permissions.Permissions.ADMIN
     else:
@@ -2040,8 +2040,7 @@ class OctolapsePlugin(
             # move some octoprint defaults if they exist for the webcam
             # specifically the address, the bitrate and the ffmpeg directory.
             # Attempt to get the camera address and snapshot template from Octoprint settings
-            snapshot_url = self._settings.global_get(["webcam", "snapshot"])
-            webcam_stream_url = self._settings.global_get(["webcam", "stream"])
+            snapshot_url, webcam_stream_url = self.get_default_webcam_urls()
             # we are doing some templating so we have to try to separate the
             # camera base address from the querystring.  This will probably not work
             # for all cameras.
@@ -2096,6 +2095,34 @@ class OctolapsePlugin(
                 logger.warning("No rendering bitrate was set in the Octoprint settings.  Unable to apply the defaults.")
         except Exception as e:
             logger.exception("Unable to copy default settings from OctoPrint.")
+
+    def get_default_webcam_urls(self):
+        """Return (snapshot_url, stream_url) of OctoPrint's default webcam.
+
+        Since OctoPrint 1.9 the webcam configuration lives in the webcam system
+        (octoprint.webcams, provided by WebcamProviderPlugins); the old global
+        settings paths ["webcam", "snapshot"]/["webcam", "stream"] are only a
+        read-only compatibility overlay (removed in a future release). Prefer
+        the webcam system, fall back to the legacy paths for OctoPrint < 1.9.
+        """
+        try:
+            import octoprint.webcams  # noqa: available since OctoPrint 1.9
+        except ImportError:
+            octoprint.webcams = None
+
+        if octoprint.webcams is not None:
+            try:
+                webcam = octoprint.webcams.get_default_webcam()
+                if webcam is not None and getattr(webcam, "compat", None) is not None:
+                    return webcam.compat.snapshot, webcam.compat.stream
+            except Exception:
+                logger.exception("Unable to get the default webcam from OctoPrint's webcam system.")
+            return None, None
+
+        return (
+            self._settings.global_get(["webcam", "snapshot"]),
+            self._settings.global_get(["webcam", "stream"]),
+        )
 
     def save_settings(self):
         # Save setting from file
@@ -2203,6 +2230,12 @@ class OctolapsePlugin(
     def get_template_configs(self):
         logger.info("Octolapse - is loading template configurations.")
         return [dict(type="settings", custom_bindings=True)]
+
+    def is_template_autoescaped(self):
+        # Octolapse's templates only interpolate url_for() and translations, all
+        # safe under autoescaping. Opt in now - OctoPrint 2.1 will enforce
+        # autoescaping on all plugin templates by default.
+        return True
 
     def create_timelapse_object(self):
         self._timelapse = Timelapse(
@@ -2606,7 +2639,7 @@ class OctolapsePlugin(
 
         # check for version 1.3.8 min
         logger.verbose("Ensure we are running at least OctoPrint version 1.3.8.")
-        if not (LooseVersion(octoprint.server.VERSION) > LooseVersion("1.3.8")):
+        if not is_octoprint_compatible(">1.3.8"):
             logger.error("The current octoprint version is older than V1.3.8, and is not supported.  Failed to start "
                          "timelapse.")
             error = error_messages.get_error(
@@ -3705,12 +3738,14 @@ class OctolapsePlugin(
         )
 
     octolapse_update_info = dict(
-        displayName="Octolapse",
+        displayName="Octolapse CE",
         # version check: github repository
+        # NOTE: this port tracks the community fork (graelo/Octolapse-CE); update
+        # checks install from this fork's releases, not the (dormant) upstream.
         type="github_release",
-        user="FormerLurker",
-        repo="Octolapse",
-        pip="https://github.com/FormerLurker/Octolapse/archive/{target_version}.zip",
+        user="graelo",
+        repo="Octolapse-CE",
+        pip="https://github.com/graelo/Octolapse-CE/archive/{target_version}.zip",
         stable_branch=dict(branch="master", commitish=["master"], name="Stable"),
         release_compare='custom',
         prerelease_branches=[
@@ -3729,7 +3764,7 @@ class OctolapsePlugin(
 
     def get_release_info(self):
         # Starting with V1.5.0 prerelease branches are supported!
-        if LooseVersion(octoprint.server.VERSION) < LooseVersion("1.5.0"):
+        if not is_octoprint_compatible(">=1.5.0"):
             # get the checkout type from the software updater
             prerelease_channel = None
             is_prerelease = False
@@ -3782,21 +3817,16 @@ class OctolapsePlugin(
         return ["movie_done", "snapshot_archive_done"]
 
     def register_custom_routes(self, server_routes, *args, **kwargs):
-        # version specific permission validator
-        if LooseVersion(octoprint.server.VERSION) >= LooseVersion("1.4"):
-            admin_validation_chain = [
-                util.tornado.access_validation_factory(app, util.flask.admin_validator),
-            ]
-        else:
-            # the concept of granular permissions does not exist in this version of Octoprint.  Fallback to the
-            # admin role
-            def admin_permission_validator(flask_request):
-                user = util.flask.get_flask_user_from_request(flask_request)
-                if user is None or not user.is_authenticated() or not user.is_admin():
-                    raise tornado.web.HTTPError(403)
-            permission_validator = admin_permission_validator
-            admin_validation_chain = [util.tornado.access_validation_factory(app, permission_validator), ]
-
+        # OctoPrint >= 1.4 exposes granular permissions; the old
+        # octoprint.server.util.flask.admin_validator was removed in OctoPrint 2.0,
+        # replaced by permission_validator taking the permission to check as an
+        # argument (same access control as before: admin only).
+        import octoprint.access.permissions as permissions
+        admin_validation_chain = [
+            util.tornado.access_validation_factory(
+                app, util.flask.permission_validator, permissions.Permissions.ADMIN
+            ),
+        ]
 
         return [
             (
@@ -3819,8 +3849,11 @@ class OctolapsePlugin(
             )
         ]
 
-__plugin_name__ = "Octolapse"
-__plugin_pythoncompat__ = ">=3.7,<4"
+# Plugin identity (key, package, settings) stays 'octolapse' for drop-in
+# compatibility with upstream installs; only the display name distinguishes
+# the community edition.
+__plugin_name__ = "Octolapse CE"
+__plugin_pythoncompat__ = ">=3.9,<4"
 
 def __plugin_load__():
     global __plugin_implementation__
@@ -3888,7 +3921,8 @@ class OctolapseLargeResponseHandler(LargeResponseHandler):
 
 
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-__git_version__ = get_versions()['full-revisionid']
-del get_versions
+# NOTE: keep in sync with the static version in pyproject.toml (which is the
+# authoritative version for package metadata). The versioneer/git-derived
+# versioning was removed so that installs work from plain source zips.
+__version__ = "0.4.6"
+__git_version__ = ""

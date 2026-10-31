@@ -1,4 +1,6 @@
-# Octolapse
+# Octolapse CE
+
+> **Community Edition.** This is the community-maintained port of [FormerLurker/Octolapse](https://github.com/FormerLurker/Octolapse) (upstream dormant since 2023), kept compatible with modern Python (3.13/3.14) and OctoPrint 2.0. It installs as a **drop-in replacement** for upstream Octolapse: same plugin identity, your existing profiles and settings carry over unchanged.
 
 <div align="center">
     <a href="https://github.com/FormerLurker/Octolapse/wiki/V0.4---Octolapse-Tab" title="Get more information about this feature from the Octolapse Wiki">
@@ -27,6 +29,19 @@ Octolapse is designed to make stabilized timelapses of your prints with as littl
 Octolapse moves the print bed and extruder into position before taking each snapshot, giving you a crisp image in every frame.  Snapshots can be taken at each layer change, at specific height increments, after a period of time has elapsed, or when certain GCodes are detected.
 
 **Important**:  *Octolapse requires OctoPrint v1.3.9 or higher, and some features require OctoPrint v1.3.10rc1 or above.*  You can check your OctoPrint version by looking in the lower left hand corner of your OctoPrint server home page.
+
+## Supported OctoPrint & Python versions
+
+This is the community fork of Octolapse, ported to modern Python and OctoPrint 2.0:
+
+| OctoPrint | Python | Status |
+|---|---|---|
+| 2.0.0rc7+ (2.x) | 3.13, 3.14 | ✅ tested (install + runtime smoke test) |
+| 1.11.x | 3.9 – 3.13 | ✅ supported (runtime compatibility kept where cheap) |
+| 1.9 – 1.10 | 3.9 – 3.12 | ⚠️ not actively tested, most features expected to work |
+| < 1.11 | < 3.9 | ❌ not supported by this fork |
+
+The plugin installs from a plain source zip (as used by the Plugin Manager) on all supported Python versions, both with and without pip build isolation.
 
 ## Getting Started
 

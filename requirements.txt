@@ -1,7 +1,17 @@
 ###
-# This file is only here to make sure that something like
+# Runtime dependencies of Octolapse, kept in sync with the [project].dependencies
+# section of pyproject.toml (the authoritative source used by pip).
 #
-#    pip install -e .
+#    requests
+#    psutil
+#    file-read-backwards
+#    pillow
 #
-# works as expected. Requirements can be found in setup.py.
+# NOTE: `pip install -e .` etc. use pyproject.toml directly - this file only
+# exists for tooling that expects a requirements.txt.
 ###
+
+requests
+psutil
+file-read-backwards
+pillow
