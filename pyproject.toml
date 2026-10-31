@@ -1,0 +1,75 @@
+# Build configuration for Octolapse.
+#
+# Migrated from the legacy setup.py/versioneer.py build to a static version +
+# pyproject.toml so that:
+#   * installs work from a plain source zip (no git metadata required) - this is
+#     what OctoPrint's Plugin Manager installs
+#   * building does not import octoprint (works with and without build isolation)
+# The C++ extension (GcodePositionProcessor) cannot be declared in pyproject.toml,
+# so a minimal setup.py shim still provides ext_modules and the custom build_ext.
+
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Octolapse"
+version = "0.4.6"
+description = "Create a stabilized timelapse of your 3D prints."
+readme = "README.md"
+license = { text = "GNU Affero General Public License v3" }
+authors = [
+    { name = "Brad Hochgesang", email = "FormerLurker@pm.me" },
+]
+# Python support matrix: OctoPrint 2.0 supports >=3.9,<3.15; OctoPrint 1.11.x
+# caps at <3.14. This port targets 3.13 and 3.14 explicitly (tested) and stays
+# installable on OctoPrint 1.11 (Python 3.9 - 3.13).
+requires-python = ">=3.9,<4"
+dependencies = [
+    # Previously undeclared runtime dependencies of octoprint_octolapse
+    # (requirements.txt was empty before this port).
+    "requests",
+    "psutil",
+    "file-read-backwards",
+    "pillow",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: System :: Monitoring",
+]
+
+[project.urls]
+Homepage = "https://github.com/FormerLurker/Octolapse/"
+
+[project.entry-points."octoprint.plugin"]
+octolapse = "octoprint_octolapse"
+
+[project.optional-dependencies]
+develop = [
+    "mock>=2.0.0",
+]
+
+[tool.setuptools]
+packages = [
+    "octoprint_octolapse",
+    "octoprint_octolapse_setuptools",
+]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.package-data]
+octoprint_octolapse = [
+    "data/**/*",
+    "static/**/*",
+    "templates/**/*",
+]

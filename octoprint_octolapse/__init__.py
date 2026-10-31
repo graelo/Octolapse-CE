@@ -3820,7 +3820,7 @@ class OctolapsePlugin(
         ]
 
 __plugin_name__ = "Octolapse"
-__plugin_pythoncompat__ = ">=3.7,<4"
+__plugin_pythoncompat__ = ">=3.9,<4"
 
 def __plugin_load__():
     global __plugin_implementation__
@@ -3888,7 +3888,8 @@ class OctolapseLargeResponseHandler(LargeResponseHandler):
 
 
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-__git_version__ = get_versions()['full-revisionid']
-del get_versions
+# NOTE: keep in sync with the static version in pyproject.toml (which is the
+# authoritative version for package metadata). The versioneer/git-derived
+# versioning was removed so that installs work from plain source zips.
+__version__ = "0.4.6"
+__git_version__ = ""
