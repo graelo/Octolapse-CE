@@ -21,12 +21,12 @@
 # following email address: FormerLurker@pm.me
 ##################################################################################
 
-from distutils import version
+from octoprint_octolapse_setuptools._loose_version import LooseVersion
 import functools
 
 
 @functools.total_ordering
-class NumberedVersion(version.LooseVersion):
+class NumberedVersion(LooseVersion):
     # This is the current plugin version, not including any versioneer info,
     # which could be earlier or later
     CurrentVersion = "0.4.6"
@@ -67,10 +67,10 @@ class NumberedVersion(version.LooseVersion):
                 self.commit_version_string = vstring[index+1:]
             # strip off the plus symbox from the vstring
             vstring = vstring[:index]
-        version.LooseVersion.__init__(self, vstring)
+        LooseVersion.__init__(self, vstring)
 
     def parse(self, vstring):
-        version.LooseVersion.parse(self, vstring)
+        LooseVersion.parse(self, vstring)
         # save the version without commit level info
         # set index = 0
         index = 0
