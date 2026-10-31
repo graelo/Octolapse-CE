@@ -15,7 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.13", "3.14"]
+        # Cover the full declared pythoncompat floor (>=3.9): 3.9 = Bullseye-era
+        # OctoPi, 3.10 = all official octoprint/octoprint docker images,
+        # 3.11 = OctoPi on Bookworm, 3.12 = rare/custom, 3.13/3.14 = the port's
+        # primary targets (OctoPrint 2.0).
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         isolation: ["--no-build-isolation", "--use-pep517"]
     runs-on: ubuntu-latest
     steps:
