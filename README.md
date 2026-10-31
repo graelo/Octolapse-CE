@@ -1,6 +1,13 @@
 # Octolapse CE
 
-> **Community Edition.** This is the community-maintained port of [FormerLurker/Octolapse](https://github.com/FormerLurker/Octolapse) (upstream dormant since 2023), kept compatible with modern Python (3.13/3.14) and OctoPrint 2.0. It installs as a **drop-in replacement** for upstream Octolapse: same plugin identity, your existing profiles and settings carry over unchanged.
+> **Octolapse CE** is the community continuation of **[Octolapse](https://github.com/FormerLurker/Octolapse)**, the stabilized-timelapse plugin for OctoPrint created by **Brad Hochgesang ([FormerLurker](https://github.com/FormerLurker))**.
+
+**Octolapse CE is not a new plugin.** The concept, the features and the overwhelming majority of the code — including the C++ GCode position processor at its core — are Brad's work. This repository maintains that work so it keeps running on current platforms (Python 3.13/3.14, OctoPrint 2.0) after the upstream project went dormant in 2023. It installs as a **drop-in replacement** for upstream Octolapse: same plugin identity, your existing profiles and settings carry over unchanged.
+
+- **Original project — and all credit for it:** [FormerLurker/Octolapse](https://github.com/FormerLurker/Octolapse). Its [wiki](https://github.com/FormerLurker/Octolapse/wiki) remains the documentation for everything described below.
+- **License:** AGPL-3.0, unchanged ([LICENSE](LICENSE)); the complete upstream commit history is preserved in this repository's git history.
+- **What the CE port changed:** see [What changed in Octolapse CE](#what-changed-in-octolapse-ce) below.
+- Octolapse CE is a volunteer community effort and is not affiliated with or endorsed by the original author.
 
 <div align="center">
     <a href="https://github.com/FormerLurker/Octolapse/wiki/V0.4---Octolapse-Tab" title="Get more information about this feature from the Octolapse Wiki">
@@ -43,6 +50,16 @@ This is the community fork of Octolapse, ported to modern Python and OctoPrint 2
 
 The plugin installs from a plain source zip (as used by the Plugin Manager) on all supported Python versions, both with and without pip build isolation.
 
+## What changed in Octolapse CE
+
+The first CE release is **v0.4.6**, a compatibility port of upstream master (`0.4.5+3`) — no feature work:
+
+- **Build system** rebuilt (versioneer/setup.py → static version + `pyproject.toml`), fixing installs from plain source zips on Python ≥ 3.12 — the root cause of [upstream issue #970](https://github.com/FormerLurker/Octolapse/issues/970).
+- **Python 3.13/3.14** runtime fixes (all `distutils` usage removed, including a deprecated C-API call in the C++ extension that Python 3.15 would have removed).
+- **OctoPrint 2.0** API migration (removed permission-validator API, webcam system instead of deprecated settings, template autoescaping, template include namespaces). Verified with an automated install matrix (Python 3.9–3.14) and an OctoPrint 2.0.0rc7 runtime smoke test.
+
+Full audit and verification details: [PR #1](https://github.com/graelo/Octolapse-CE/pull/1).
+
 ## Getting Started
 
 Be sure to [read the getting started guide](https://github.com/FormerLurker/Octolapse/wiki/V0.4---Getting-Started) on the [Octolapse Wiki](https://github.com/FormerLurker/Octolapse/wiki).  This will save you a lot of hassle and allow you to unlock some of the best features of Octolapse.
@@ -57,6 +74,8 @@ Be sure to [read the getting started guide](https://github.com/FormerLurker/Octo
 </div>
 
 ## Recent Changes
+
+*The sections from here down (Recent Changes, Highlights, History) are reproduced from the upstream project README and describe **Octolapse V0.4, written by the original author, Brad Hochgesang**. They are kept for context and documentation.*
 
 A **lot** has changed since the last release (v0.3.4).  Over **18** months of development and over 600 commits went into this newest version.  If you've had trouble installing or running Octolapse in the past, you just might want to try it again!
 
@@ -218,9 +237,9 @@ Octolapse now captures snapshots more quickly and performs all image manipulatio
 ###  G2/G3 (Arc) Support
 Octolapse now supports Arc commands.  Now you can use the [Arc Welder](https://github.com/FormerLurker/ArcWelderPlugin) plugin with Octolapse.
 
-## Support Octolapse Development
+## Support the Original Author
 
-Please consider supporting my work by becoming a [patron](https://www.patreon.com/join/FormerLurker), a [Github Sponsor](https://github.com/sponsors/FormerLurker), or by sending me beer money via [PayPal](https://paypal.me/formerlurker).  Almost all of the donations go towards offsetting the cost of development, which is substantial. Plus it always makes my day!  If you cannot afford to leave a tip or just don't want to, that is fine too! Octolapse is [free and open source](https://raw.githubusercontent.com/FormerLurker/Octolapse/master/LICENSE) after all.
+Octolapse CE is maintained by volunteers in their spare time and does not take donations. If you want to give back, please consider supporting **the original author**, without whom none of this would exist: become a [patron](https://www.patreon.com/join/FormerLurker), a [GitHub Sponsor](https://github.com/sponsors/FormerLurker), or send beer money via [PayPal](https://paypal.me/formerlurker).  Almost all of the donations go towards offsetting the cost of development, which is substantial. Plus it always makes my day!  If you cannot afford to leave a tip or just don't want to, that is fine too! Octolapse is [free and open source](https://raw.githubusercontent.com/FormerLurker/Octolapse/master/LICENSE) after all.
 
 ## More Octolapses
 
@@ -270,12 +289,14 @@ Octolapse is my "thank you" to all of the makers out there who have contributed 
 
 ## Report Problems and Suggest Improvements
 
-If you think you have found a bug in Octolapse, please [see this guide for reporting issues](https://github.com/FormerLurker/Octolapse/wiki/V0.4---Reporting-An-Issue).  Maybe you have an idea for a cool new feature?  Find out how to let me know about your idea [here](https://github.com/FormerLurker/Octolapse/wiki/V0.4---Request-A-New-Feature).
+If you think you have found a bug in **Octolapse CE**, please [open an issue in this repository](https://github.com/graelo/Octolapse-CE/issues) — the upstream repository is dormant and issues opened there are unlikely to be seen. The upstream [issue reporting guide](https://github.com/FormerLurker/Octolapse/wiki/V0.4---Reporting-An-Issue) is still the best resource for gathering the information that helps with debugging. Feature suggestions are welcome in this repository's issues as well.
 
 # License
 
-View the [Octolapse license](https://github.com/FormerLurker/Octolapse/blob/master/LICENSE).
+Octolapse CE is released under the same license as the original project: the **GNU Affero General Public License v3** — see [LICENSE](LICENSE).
 
 <hr/>
 
-_Copyright (C) 2023  Brad Hochgesang - FormerLurker@pm.me_
+_Octolapse — Copyright (C) 2023 Brad Hochgesang - FormerLurker@pm.me_
+
+_Octolapse CE (community port) — Copyright (C) 2026 Octolapse CE contributors, under the terms of the GNU AGPLv3_
