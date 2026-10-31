@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  # Install the package exactly the way the OctoPrint Plugin Manager does:
+  # from a plain source zip (no git metadata) with and without build
+  # isolation, on all supported Python versions, with OctoPrint 2.0
+  # preinstalled (the zip must not need octoprint at build time, but the
+  # runtime import requires it).
+  package-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.13", "3.14"]
+        isolation: ["--no-build-isolation", "--use-pep517"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install build tools and OctoPrint
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install OctoPrint==2.0.0rc7
+
+      - name: Create source zip (mimics Plugin Manager download; no git metadata)
+        run: git archive --format=zip -o octolapse-test.zip HEAD
+
+      - name: pip install from zip
+        run: python -m pip install --no-input --root-user-action=ignore ${{ matrix.isolation }} octolapse-test.zip
+
+      - name: Import test
+        run: |
+          python -c "import octoprint_octolapse, octoprint_octolapse_setuptools, GcodePositionProcessor; print('imports OK')"
+
+  import-warnings:
+    # every module must import cleanly with warnings-as-errors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install OctoPrint
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install OctoPrint==2.0.0rc7
+      - name: Install plugin from source tree (compiles the C++ extension)
+        run: python -m pip install --no-input --root-user-action=ignore --no-build-isolation .
+      - name: Import all modules, warnings are errors
+        run: |
+          python - <<'EOF'
+          import warnings, importlib, pkgutil
+          warnings.simplefilter("error")
+          import octoprint_octolapse, octoprint_octolapse_setuptools
+          for pkg in (octoprint_octolapse, octoprint_octolapse_setuptools):
+              for mi in pkgutil.iter_modules(pkg.__path__):
+                  importlib.import_module(f"{pkg.__name__}.{mi.name}")
+                  print(f"imported {pkg.__name__}.{mi.name}")
+          print("all imports OK")
+          EOF

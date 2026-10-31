@@ -28,6 +28,19 @@ Octolapse moves the print bed and extruder into position before taking each snap
 
 **Important**:  *Octolapse requires OctoPrint v1.3.9 or higher, and some features require OctoPrint v1.3.10rc1 or above.*  You can check your OctoPrint version by looking in the lower left hand corner of your OctoPrint server home page.
 
+## Supported OctoPrint & Python versions
+
+This is the community fork of Octolapse, ported to modern Python and OctoPrint 2.0:
+
+| OctoPrint | Python | Status |
+|---|---|---|
+| 2.0.0rc7+ (2.x) | 3.13, 3.14 | ✅ tested (install + runtime smoke test) |
+| 1.11.x | 3.9 – 3.13 | ✅ supported (runtime compatibility kept where cheap) |
+| 1.9 – 1.10 | 3.9 – 3.12 | ⚠️ not actively tested, most features expected to work |
+| < 1.11 | < 3.9 | ❌ not supported by this fork |
+
+The plugin installs from a plain source zip (as used by the Plugin Manager) on all supported Python versions, both with and without pip build isolation.
+
 ## Getting Started
 
 Be sure to [read the getting started guide](https://github.com/FormerLurker/Octolapse/wiki/V0.4---Getting-Started) on the [Octolapse Wiki](https://github.com/FormerLurker/Octolapse/wiki).  This will save you a lot of hassle and allow you to unlock some of the best features of Octolapse.

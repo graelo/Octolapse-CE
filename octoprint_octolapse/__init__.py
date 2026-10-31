@@ -3740,10 +3740,12 @@ class OctolapsePlugin(
     octolapse_update_info = dict(
         displayName="Octolapse",
         # version check: github repository
+        # NOTE: this port tracks the community fork (graelo/Octolapse); update
+        # checks install from this fork's releases, not the (dormant) upstream.
         type="github_release",
-        user="FormerLurker",
+        user="graelo",
         repo="Octolapse",
-        pip="https://github.com/FormerLurker/Octolapse/archive/{target_version}.zip",
+        pip="https://github.com/graelo/Octolapse/archive/{target_version}.zip",
         stable_branch=dict(branch="master", commitish=["master"], name="Stable"),
         release_compare='custom',
         prerelease_branches=[

@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # With the static version + pyproject.toml build, the source archive IS
+      # the installable plugin artifact - the Plugin Manager can install this
+      # zip directly. Build it from git archive for a clean, deterministic zip
+      # (no .github, no .git attributes).
+      - name: Create plugin source archive
+        run: git archive --format=zip -o "Octolapse-${{ github.ref_name }}.zip" HEAD
+
+      - name: Attach to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "Octolapse-${{ github.ref_name }}.zip"
