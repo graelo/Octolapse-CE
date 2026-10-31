@@ -2040,8 +2040,7 @@ class OctolapsePlugin(
             # move some octoprint defaults if they exist for the webcam
             # specifically the address, the bitrate and the ffmpeg directory.
             # Attempt to get the camera address and snapshot template from Octoprint settings
-            snapshot_url = self._settings.global_get(["webcam", "snapshot"])
-            webcam_stream_url = self._settings.global_get(["webcam", "stream"])
+            snapshot_url, webcam_stream_url = self.get_default_webcam_urls()
             # we are doing some templating so we have to try to separate the
             # camera base address from the querystring.  This will probably not work
             # for all cameras.
@@ -2096,6 +2095,34 @@ class OctolapsePlugin(
                 logger.warning("No rendering bitrate was set in the Octoprint settings.  Unable to apply the defaults.")
         except Exception as e:
             logger.exception("Unable to copy default settings from OctoPrint.")
+
+    def get_default_webcam_urls(self):
+        """Return (snapshot_url, stream_url) of OctoPrint's default webcam.
+
+        Since OctoPrint 1.9 the webcam configuration lives in the webcam system
+        (octoprint.webcams, provided by WebcamProviderPlugins); the old global
+        settings paths ["webcam", "snapshot"]/["webcam", "stream"] are only a
+        read-only compatibility overlay (removed in a future release). Prefer
+        the webcam system, fall back to the legacy paths for OctoPrint < 1.9.
+        """
+        try:
+            import octoprint.webcams  # noqa: available since OctoPrint 1.9
+        except ImportError:
+            octoprint.webcams = None
+
+        if octoprint.webcams is not None:
+            try:
+                webcam = octoprint.webcams.get_default_webcam()
+                if webcam is not None and getattr(webcam, "compat", None) is not None:
+                    return webcam.compat.snapshot, webcam.compat.stream
+            except Exception:
+                logger.exception("Unable to get the default webcam from OctoPrint's webcam system.")
+            return None, None
+
+        return (
+            self._settings.global_get(["webcam", "snapshot"]),
+            self._settings.global_get(["webcam", "stream"]),
+        )
 
     def save_settings(self):
         # Save setting from file
@@ -2203,6 +2230,12 @@ class OctolapsePlugin(
     def get_template_configs(self):
         logger.info("Octolapse - is loading template configurations.")
         return [dict(type="settings", custom_bindings=True)]
+
+    def is_template_autoescaped(self):
+        # Octolapse's templates only interpolate url_for() and translations, all
+        # safe under autoescaping. Opt in now - OctoPrint 2.1 will enforce
+        # autoescaping on all plugin templates by default.
+        return True
 
     def create_timelapse_object(self):
         self._timelapse = Timelapse(
@@ -3782,21 +3815,16 @@ class OctolapsePlugin(
         return ["movie_done", "snapshot_archive_done"]
 
     def register_custom_routes(self, server_routes, *args, **kwargs):
-        # version specific permission validator
-        if is_octoprint_compatible(">=1.4"):
-            admin_validation_chain = [
-                util.tornado.access_validation_factory(app, util.flask.admin_validator),
-            ]
-        else:
-            # the concept of granular permissions does not exist in this version of Octoprint.  Fallback to the
-            # admin role
-            def admin_permission_validator(flask_request):
-                user = util.flask.get_flask_user_from_request(flask_request)
-                if user is None or not user.is_authenticated() or not user.is_admin():
-                    raise tornado.web.HTTPError(403)
-            permission_validator = admin_permission_validator
-            admin_validation_chain = [util.tornado.access_validation_factory(app, permission_validator), ]
-
+        # OctoPrint >= 1.4 exposes granular permissions; the old
+        # octoprint.server.util.flask.admin_validator was removed in OctoPrint 2.0,
+        # replaced by permission_validator taking the permission to check as an
+        # argument (same access control as before: admin only).
+        import octoprint.access.permissions as permissions
+        admin_validation_chain = [
+            util.tornado.access_validation_factory(
+                app, util.flask.permission_validator, permissions.Permissions.ADMIN
+            ),
+        ]
 
         return [
             (
