@@ -54,7 +54,13 @@ jobs:
           python -m pip install OctoPrint==2.0.0rc7
       - name: Install plugin from source tree (compiles the C++ extension)
         run: python -m pip install --no-input --root-user-action=ignore --no-build-isolation .
+      # Run from a neutral directory so the modules under test come from the
+      # INSTALLED wheel (the shipped artifact), not from the checkout (whose
+      # cwd position on sys.path would shadow site-packages). Note: the
+      # legacy octoprint_octolapse/test package is not shipped and is broken
+      # upstream (imports octoprint_octolapse.extruder, which no longer exists).
       - name: Import all modules, warnings are errors
+        working-directory: ${{ runner.temp }}
         run: |
           python - <<'EOF'
           import warnings, importlib, pkgutil
